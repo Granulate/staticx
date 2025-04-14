@@ -21,7 +21,7 @@ def git_describe():
     # Get the version from the local Git repository
     subprocess.check_call(['git', 'update-index', '-q', '--refresh'], cwd=PROJPATH)
 
-    desc = subprocess.check_output(['git', 'describe', '--long', '--dirty', '--tag'], cwd=PROJPATH)
+    desc = subprocess.check_output(['git', 'describe', '--long', '--dirty', '--tag', '--always'], cwd=PROJPATH)
     desc = desc.decode('utf-8').strip()
 
     tag, commits, rev = desc.split('-', 2)
@@ -38,8 +38,8 @@ def get_version():
     if gitdir.exists():
         try:
             tag, commits, rev = git_describe()
-        except FileNotFoundError:
-            # git not installed
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            # git not installed or git command failed.
             pass
         else:
             # Ensure the base version matches the Git tag
@@ -51,6 +51,7 @@ def get_version():
                 return BASE_VERSION
 
             return f'{BASE_VERSION}+{commits}-{rev}'
+    return BASE_VERSION
 
 
     # Git archive
